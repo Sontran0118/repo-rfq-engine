@@ -12,6 +12,14 @@ implemented end to end and tested properly, rather than sketched broadly.
 > the concurrency problems an RFQ platform has to solve. It is a simulator: no
 > real counterparties, no market data feed, no settlement.
 
+![The blotter: two RFQs go out, dealers compete, the best price is accepted and a trade books](docs/blotter.gif)
+
+Above: a $25m overnight Treasury repo and a $50m 7-day agency reverse repo go
+out to dealers, quotes land live over the event stream, the quote ladder shows
+the winning price, and accepting books the trade with its interest, repurchase
+price, and collateral requirement. Note the two rows rank oppositely — the repo
+takes the *lowest* rate, the reverse repo the *highest*.
+
 ---
 
 ## The problem this solves
