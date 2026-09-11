@@ -1,0 +1,7 @@
+/tmp/
+*.log
+web/node_modules/
+web/dist/
+web/.angular/
+rfq-server
+.DS_Store
