@@ -112,14 +112,14 @@ sequenceDiagram
     participant B as Session B
     participant DB as MySQL
 
-    A->>DB: BEGIN; SELECT … FOR UPDATE
-    B->>DB: BEGIN; SELECT … FOR UPDATE
+    A->>DB: BEGIN, then SELECT … FOR UPDATE
+    B->>DB: BEGIN, then SELECT … FOR UPDATE
     Note over B,DB: blocks on A's row lock
     A->>DB: INSERT trade, mark WON/LOST
-    A->>DB: UPDATE rfq SET state='EXECUTED'
+    A->>DB: UPDATE rfq SET state = EXECUTED
     A->>DB: COMMIT
     DB-->>B: lock released
-    Note over B: re-reads state → EXECUTED
+    Note over B: re-reads state, finds EXECUTED
     B-->>B: 409 ErrAlreadyTraded
 ```
 
