@@ -1,0 +1,245 @@
+<header class="topbar">
+  <div class="brand">
+    <span class="mark">RFQ</span>
+    <div>
+      <h1>Repo RFQ Engine</h1>
+      <p>Request-for-quote lifecycle for securities financing</p>
+    </div>
+  </div>
+  <div class="status" [class.live]="svc.connected()">
+    <span class="dot"></span>
+    {{ svc.connected() ? 'Live' : 'Reconnecting…' }}
+  </div>
+</header>
+
+@if (toast(); as t) {
+  <div class="toast" [class.err]="t.kind === 'err'">{{ t.text }}</div>
+}
+
+<main>
+  <!-- ── Ticket: raise a new RFQ ───────────────────────────────── -->
+  <section class="panel ticket">
+    <h2>New request</h2>
+
+    <label>
+      Client
+      <select [(ngModel)]="ticket.clientId" name="clientId">
+        @for (c of clients(); track c.id) {
+          <option [value]="c.id">{{ c.name }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Direction
+      <select [(ngModel)]="ticket.direction" name="direction">
+        <option value="REPO">Repo — borrow cash</option>
+        <option value="REVERSE_REPO">Reverse repo — lend cash</option>
+      </select>
+    </label>
+
+    <label>
+      Notional (USD)
+      <input type="number" [(ngModel)]="ticket.notionalDollars" name="notional" min="1" step="1000000" />
+    </label>
+
+    <label>
+      Collateral CUSIP
+      <input type="text" [(ngModel)]="ticket.cusip" name="cusip" />
+    </label>
+
+    <label>
+      Description
+      <input type="text" [(ngModel)]="ticket.description" name="description" />
+    </label>
+
+    <div class="row">
+      <label>
+        Asset class
+        <select [(ngModel)]="ticket.assetClass" name="assetClass">
+          <option value="UST">UST</option>
+          <option value="AGENCY">Agency</option>
+          <option value="CORP">Corporate</option>
+          <option value="EQUITY">Equity</option>
+        </select>
+      </label>
+      <label>
+        Term (days)
+        <input type="number" [(ngModel)]="ticket.termDays" name="termDays" min="1" />
+      </label>
+      <label>
+        Window (s)
+        <input type="number" [(ngModel)]="ticket.ttlSeconds" name="ttl" min="5" />
+      </label>
+    </div>
+
+    <button class="primary" (click)="createRFQ()" [disabled]="!ticket.clientId">
+      Send to dealers
+    </button>
+
+    <hr />
+
+    <h2>Dealer quote</h2>
+    <p class="hint">Select a live RFQ in the blotter, then price it.</p>
+
+    <label>
+      Dealer
+      <select [(ngModel)]="quoteForm.dealerId" name="dealerId">
+        @for (d of dealers(); track d.id) {
+          <option [value]="d.id">{{ d.name }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="row">
+      <label>
+        Rate (%)
+        <input type="number" [(ngModel)]="quoteForm.ratePct" name="rate" step="0.01" />
+      </label>
+      <label>
+        Haircut (%)
+        <input type="number" [(ngModel)]="quoteForm.haircutPct" name="haircut" step="0.25" min="0" />
+      </label>
+    </div>
+
+    @if (selected(); as sel) {
+      <button class="secondary" (click)="submitQuote(sel)">
+        Quote {{ sel.id.slice(0, 8) }}
+      </button>
+    } @else {
+      <button class="secondary" disabled>No RFQ selected</button>
+    }
+  </section>
+
+  <!-- ── Blotter ───────────────────────────────────────────────── -->
+  <section class="panel blotter">
+    <h2>Blotter <span class="count">{{ liveRFQs().length }} live</span></h2>
+
+    @if (liveRFQs().length === 0) {
+      <p class="empty">No live requests. Raise one to see dealers respond.</p>
+    }
+
+    <table>
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Side</th>
+          <th>Collateral</th>
+          <th class="num">Notional</th>
+          <th class="num">Term</th>
+          <th class="num">Best</th>
+          <th class="num">Quotes</th>
+          <th class="num">Expires</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rfq of liveRFQs(); track rfq.id) {
+          <tr [class.selected]="selected()?.id === rfq.id" (click)="select(rfq)">
+            <td>{{ rfq.clientId }}</td>
+            <td>
+              <span class="side" [class.reverse]="rfq.direction === 'REVERSE_REPO'">
+                {{ rfq.direction === 'REPO' ? 'Repo' : 'Reverse' }}
+              </span>
+            </td>
+            <td class="mono">{{ rfq.collateral.cusip }}</td>
+            <td class="num mono">{{ formatMoney(rfq.notional, rfq.currency) }}</td>
+            <td class="num">{{ termDays(rfq) }}d</td>
+            <td class="num mono best">
+              @if (bestQuote(rfq); as b) {
+                {{ formatBps(b.rate) }}
+              } @else {
+                —
+              }
+            </td>
+            <td class="num">{{ (rfq.quotes ?? []).length }}</td>
+            <td class="num countdown">{{ countdown(rfq) }}s</td>
+            <td class="actions">
+              <button
+                class="accept"
+                (click)="accept(rfq); $event.stopPropagation()"
+                [disabled]="!bestQuote(rfq)"
+              >
+                Accept
+              </button>
+              <button class="cancel" (click)="cancel(rfq); $event.stopPropagation()">✕</button>
+            </td>
+          </tr>
+
+          @if (selected()?.id === rfq.id && (rfq.quotes ?? []).length) {
+            <tr class="detail">
+              <td colspan="9">
+                <table class="quotes">
+                  <thead>
+                    <tr>
+                      <th>Dealer</th>
+                      <th class="num">Rate</th>
+                      <th class="num">Haircut</th>
+                      <th class="num">Collateral req.</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (q of rfq.quotes ?? []; track q.id) {
+                      <tr [class.winning]="bestQuote(rfq)?.id === q.id">
+                        <td>{{ q.dealerId }}</td>
+                        <td class="num mono">{{ formatBps(q.rate) }}</td>
+                        <td class="num mono">{{ formatBps(q.haircut) }}</td>
+                        <td class="num mono">
+                          {{ formatMoney(rfq.notional * (1 + q.haircut / 10000), rfq.currency) }}
+                        </td>
+                        <td><span [class]="stateClass(q.status)">{{ q.status }}</span></td>
+                        <td class="num">
+                          @if (bestQuote(rfq)?.id === q.id) {
+                            <span class="badge">best</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── Executed trades ───────────────────────────────────────── -->
+  <section class="panel trades">
+    <h2>Trades <span class="count">{{ svc.trades().length }}</span></h2>
+
+    @if (svc.trades().length === 0) {
+      <p class="empty">Nothing executed yet.</p>
+    }
+
+    <table>
+      <thead>
+        <tr>
+          <th>Dealer</th>
+          <th class="num">Notional</th>
+          <th class="num">Rate</th>
+          <th class="num">Term</th>
+          <th class="num">Interest</th>
+          <th class="num">Repurchase</th>
+          <th class="num">Collateral</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of svc.trades(); track t.id) {
+          <tr>
+            <td>{{ t.dealerId }}</td>
+            <td class="num mono">{{ formatMoney(t.notional, t.currency) }}</td>
+            <td class="num mono">{{ formatBps(t.rate) }}</td>
+            <td class="num">{{ t.termDays }}d</td>
+            <td class="num mono gain">{{ formatMoney(t.interest, t.currency) }}</td>
+            <td class="num mono">{{ formatMoney(t.repurchasePrice, t.currency) }}</td>
+            <td class="num mono">{{ formatMoney(t.collateralRequired, t.currency) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+</main>

@@ -1,0 +1,398 @@
+:host {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #262d38;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #2f81f7;
+  --green: #3fb950;
+  --red: #f85149;
+  --amber: #d29922;
+
+  display: block;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.brand p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+.status.live .dot {
+  background: var(--green);
+  box-shadow: 0 0 0 3px rgb(63 185 80 / 0.18);
+}
+
+/* ── Layout ─────────────────────────────────────────────────── */
+
+main {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-areas:
+    "ticket blotter"
+    "ticket trades";
+  align-content: start;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.ticket {
+  grid-area: ticket;
+}
+.blotter {
+  grid-area: blotter;
+}
+.trades {
+  grid-area: trades;
+}
+
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "ticket" "blotter" "trades";
+  }
+}
+
+.panel {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  min-width: 0;
+}
+
+.panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.count {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: #21262d;
+  color: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+}
+
+/* ── Ticket form ────────────────────────────────────────────── */
+
+label {
+  display: block;
+  margin-bottom: 0.6rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+input,
+select {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #0d1117;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+button {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.primary {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+}
+
+.secondary {
+  width: 100%;
+  border-color: var(--border);
+  background: #21262d;
+  color: var(--text);
+}
+
+.primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.secondary:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+hr {
+  margin: 1.1rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.hint,
+.empty {
+  margin: 0 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+/* ── Tables ─────────────────────────────────────────────────── */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+th {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid #1c222b;
+  white-space: nowrap;
+}
+
+tbody tr:hover {
+  background: #1c2128;
+}
+
+tbody tr.selected {
+  background: #1f2937;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.num {
+  text-align: right;
+}
+
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.best {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.gain {
+  color: var(--green);
+}
+
+.countdown {
+  color: var(--amber);
+}
+
+.side {
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  background: rgb(47 129 247 / 0.15);
+  color: var(--accent);
+  font-size: 0.72rem;
+}
+
+.side.reverse {
+  background: rgb(210 153 34 / 0.15);
+  color: var(--amber);
+}
+
+.actions {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: flex-end;
+}
+
+.accept {
+  border-color: var(--green);
+  background: rgb(63 185 80 / 0.12);
+  color: var(--green);
+}
+
+.accept:hover:not(:disabled) {
+  background: var(--green);
+  color: #0d1117;
+}
+
+.cancel {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--muted);
+  padding: 0.45rem 0.55rem;
+}
+
+.cancel:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ── Quote detail row ───────────────────────────────────────── */
+
+tr.detail > td {
+  padding: 0 0 0.5rem 1.5rem;
+  background: #10151c;
+}
+
+.quotes {
+  margin-top: 0.25rem;
+  border-left: 2px solid var(--border);
+}
+
+.quotes th {
+  border-bottom-color: #1c222b;
+}
+
+.quotes tr.winning {
+  background: rgb(47 129 247 / 0.07);
+}
+
+.badge {
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pill {
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  background: #21262d;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.pill-active {
+  background: rgb(47 129 247 / 0.15);
+  color: var(--accent);
+}
+.pill-won {
+  background: rgb(63 185 80 / 0.15);
+  color: var(--green);
+}
+.pill-lost {
+  background: rgb(139 148 158 / 0.15);
+}
+.pill-withdrawn {
+  background: rgb(248 81 73 / 0.13);
+  color: var(--red);
+}
+
+/* ── Toast ──────────────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 10;
+  max-width: 24rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  background: #0d1117;
+  color: var(--green);
+  font-size: 0.8rem;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.4);
+}
+
+.toast.err {
+  border-color: var(--red);
+  color: var(--red);
+}
